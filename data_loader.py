@@ -4,8 +4,10 @@ import ta
 import sys
 import json
 import math
+import pytz
 import pickle
 import random
+import warnings
 import requests
 import collections
 import numpy as np
@@ -14,11 +16,10 @@ import pandas as pd
 import yfinance as yf
 import datetime as dt
 from tqdm import tqdm
-from scipy.stats import linregress
-from datetime import datetime, timedelta
-from feature_generator import TAEngine
-import warnings
 from binance.client import Client
+from scipy.stats import linregress
+from feature_generator import TAEngine
+from datetime import datetime, timedelta
 
 warnings.filterwarnings("ignore")
 
@@ -74,7 +75,7 @@ class DataEngine:
 		frequent_key = counter_keys[0]
 		return frequent_key
 
-	def get_data(self, symbol):
+	def get_data(self, symbol, drop_last_bar):
 		"""
 		Get stock data.
 		"""
@@ -116,6 +117,10 @@ class DataEngine:
 								progress=False)
 			stock_prices = stock_prices.reset_index()
 			stock_prices = stock_prices[['Datetime','Open', 'High', 'Low', 'Close', 'Volume']]
+
+			if drop_last_bar:
+				stock_prices = stock_prices.loc[0:len(stock_prices.index) - 2]
+
 			data_length = len(stock_prices.values.tolist())
 			self.stock_data_length.append(data_length)
 
@@ -155,12 +160,27 @@ class DataEngine:
 		volatility = np.std(close_prices)
 		return volatility
 
+	def is_nse_open(self):
+		utc_time = datetime.utcnow()	
+		utc_timezone = pytz.timezone("UTC")
+		ist_timezone = pytz.timezone("Asia/Kolkata")
+		ist_time = None
+
+		utc_time = utc_timezone.localize(utc_time)
+		ist_time = utc_time.astimezone(ist_timezone)
+
+		return dt.time(9, 15) <= ist_time.time() <= dt.time(15, 30)
+
 	def collect_data_for_all_tickers(self):
 		"""
 		Iterates over all symbols and collects their data
 		"""
 
 		print("Loading data for all stocks...")
+		drop_last_bar = self.is_nse_open()
+		if drop_last_bar:
+			print("The NSE is open: dropping most recent bar because it is likely shorter than {}m!".format(self.DATA_GRANULARITY_MINUTES))
+
 		features = []
 		symbol_names = []
 		historical_price_info = []
@@ -170,7 +190,7 @@ class DataEngine:
 		for i in tqdm(range(len(self.stocks_list))):
 			symbol = self.stocks_list[i]
 			try:
-				stock_price_data, future_prices, not_found = self.get_data(symbol)
+				stock_price_data, future_prices, not_found = self.get_data(symbol, drop_last_bar)
 					
 				if not not_found:
 					volatility = self.calculate_volatility(stock_price_data)

@@ -3,3 +3,11 @@ docker-compose.yml
 dictionaries/*
 !dictionaries/readme.txt
 !dictionaries/sample_dict.npy
+
+# Added after fork
+.vscode/
+venv/
+stocks/*
+testing/
+!stocks/stocks.txt
+!stocks/cryptos.txt
