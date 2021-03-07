@@ -62,7 +62,7 @@ class DataEngine:
 		"""
 		print("Loading all stocks from file...")
 		stocks_list = open(self.stocks_file_path, "r").readlines()
-		stocks_list = [str(item).strip("\n") for item in stocks_list]
+		stocks_list = [str(item).strip("\n") for item in stocks_list if item != "\n"]
 
 		# Load symbols
 		stocks_list = list(sorted(set(stocks_list)))
