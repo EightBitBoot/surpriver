@@ -11,3 +11,4 @@ stocks/*
 testing/
 !stocks/stocks.txt
 !stocks/cryptos.txt
+automation_data/*

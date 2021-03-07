@@ -347,11 +347,16 @@ class Surpriver:
 		plt.show()
 
 
-# Check arguments
-argumentChecker = ArgChecker()
+def main():
+	# Check arguments
+	argumentChecker = ArgChecker()
 
-# Create surpriver instance
-supriver = Surpriver()
+	# Create surpriver instance
+	supriver = Surpriver()
 
-# Generate predictions
-supriver.find_anomalies()
+	# Generate predictions
+	supriver.find_anomalies()
+
+
+if __name__ == "__main__":
+	main()
