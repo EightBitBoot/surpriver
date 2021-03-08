@@ -58,7 +58,6 @@ def parse_arguments():
 
     args = argParser.parse_args()
     detection_engine.top_n = get_num_stocks(args.stock_list)
-    print(detection_engine.top_n)
     detection_engine.min_volume = args.min_volume
     detection_engine.history_to_use = args.history_to_use
     detection_engine.is_load_from_dictionary = 0

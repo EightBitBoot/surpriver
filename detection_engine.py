@@ -19,45 +19,74 @@ import matplotlib.pyplot as plt
 from sklearn.ensemble import IsolationForest
 from data_loader import DataEngine
 import warnings
-
-warnings.filterwarnings("ignore")
-
-# Styling for plots
-plt.style.use('seaborn-white')
-plt.rc('grid', linestyle="dotted", color='#a0a0a0')
-plt.rcParams['axes.edgecolor'] = "#04383F"
-
-# Argument parsing
 import argparse
-argParser = argparse.ArgumentParser()
-argParser.add_argument("--top_n", type=int, default = 25, help="How many top predictions do you want to print")
-argParser.add_argument("--min_volume", type=int, default = 5000, help="Minimum volume filter. Stocks with average volume of less than this value will be ignored")
-argParser.add_argument("--history_to_use", type=int, default = 7, help="How many bars of 1 hour do you want to use for the anomaly detection model.")
-argParser.add_argument("--is_load_from_dictionary", type=int, default = 0, help="Whether to load data from dictionary or get it from data source.")
-argParser.add_argument("--data_dictionary_path", type=str, default = "dictionaries/data_dictionary.npy", help="Data dictionary path.")
-argParser.add_argument("--is_save_dictionary", type=int, default = 1, help="Whether to save data in a dictionary.")
-argParser.add_argument("--data_granularity_minutes", type=int, default = 15, help="Minute level data granularity that you want to use. Default is 60 minute bars.")
-argParser.add_argument("--is_test", type=int, default = 0, help="Whether to test the tool or just predict for future. When testing, you should set the future_bars to larger than 1.")
-argParser.add_argument("--future_bars", type=int, default = 25, help="How many bars to keep for testing purposes.")
-argParser.add_argument("--volatility_filter", type=float, default = 0.05, help="Stocks with volatility less than this value will be ignored.")
-argParser.add_argument("--output_format", type=str, default = "CLI", help="What format to use for printing/storing results. Can be CLI or JSON.")
-argParser.add_argument("--stock_list", type=str, default = "stocks.txt", help="What is the name of the file in the stocks directory which contains the stocks you wish to predict.")
-argParser.add_argument("--data_source", type=str, default = "yahoo_finance", help="The name of the data engine to use.")
 
-args = argParser.parse_args()
-top_n = args.top_n
-min_volume = args.min_volume
-history_to_use = args.history_to_use
-is_load_from_dictionary = args.is_load_from_dictionary
-data_dictionary_path = args.data_dictionary_path
-is_save_dictionary = args.is_save_dictionary
-data_granularity_minutes = args.data_granularity_minutes
-is_test = args.is_test
-future_bars = args.future_bars
-volatility_filter = args.volatility_filter
-output_format = args.output_format.upper()
-stock_list = args.stock_list
-data_source = args.data_source
+def initial_setup():
+	warnings.filterwarnings("ignore")
+
+	# Styling for plots
+	plt.style.use('seaborn-white')
+	plt.rc('grid', linestyle="dotted", color='#a0a0a0')
+	plt.rcParams['axes.edgecolor'] = "#04383F"
+
+top_n = None
+min_volume = None
+history_to_use = None
+is_load_from_dictionary = None
+data_dictionary_path = None
+is_save_dictionary = None
+data_granularity_minutes = None
+is_test = None
+future_bars = None
+volatility_filter = None
+output_format = None
+stock_list = None
+data_source = None
+
+def parse_args():
+	global top_n
+	global min_volume
+	global history_to_use
+	global is_load_from_dictionary
+	global data_dictionary_path
+	global is_save_dictionary
+	global data_granularity_minutes
+	global is_test
+	global future_bars
+	global volatility_filter
+	global output_format
+	global stock_list
+	global data_source
+
+	argParser = argparse.ArgumentParser()
+	argParser.add_argument("--top_n", type=int, default = 25, help="How many top predictions do you want to print")
+	argParser.add_argument("--min_volume", type=int, default = 5000, help="Minimum volume filter. Stocks with average volume of less than this value will be ignored")
+	argParser.add_argument("--history_to_use", type=int, default = 7, help="How many bars of 1 hour do you want to use for the anomaly detection model.")
+	argParser.add_argument("--is_load_from_dictionary", type=int, default = 0, help="Whether to load data from dictionary or get it from data source.")
+	argParser.add_argument("--data_dictionary_path", type=str, default = "dictionaries/data_dictionary.npy", help="Data dictionary path.")
+	argParser.add_argument("--is_save_dictionary", type=int, default = 1, help="Whether to save data in a dictionary.")
+	argParser.add_argument("--data_granularity_minutes", type=int, default = 15, help="Minute level data granularity that you want to use. Default is 60 minute bars.")
+	argParser.add_argument("--is_test", type=int, default = 0, help="Whether to test the tool or just predict for future. When testing, you should set the future_bars to larger than 1.")
+	argParser.add_argument("--future_bars", type=int, default = 25, help="How many bars to keep for testing purposes.")
+	argParser.add_argument("--volatility_filter", type=float, default = 0.05, help="Stocks with volatility less than this value will be ignored.")
+	argParser.add_argument("--output_format", type=str, default = "CLI", help="What format to use for printing/storing results. Can be CLI or JSON.")
+	argParser.add_argument("--stock_list", type=str, default = "stocks.txt", help="What is the name of the file in the stocks directory which contains the stocks you wish to predict.")
+	argParser.add_argument("--data_source", type=str, default = "yahoo_finance", help="The name of the data engine to use.")
+
+	args = argParser.parse_args()
+	top_n = args.top_n
+	min_volume = args.min_volume
+	history_to_use = args.history_to_use
+	is_load_from_dictionary = args.is_load_from_dictionary
+	data_dictionary_path = args.data_dictionary_path
+	is_save_dictionary = args.is_save_dictionary
+	data_granularity_minutes = args.data_granularity_minutes
+	is_test = args.is_test
+	future_bars = args.future_bars
+	volatility_filter = args.volatility_filter
+	output_format = args.output_format.upper()
+	stock_list = args.stock_list
+	data_source = args.data_source
 
 """
 Sample run:
@@ -348,6 +377,12 @@ class Surpriver:
 
 
 def main():
+	#Perform Initial Setup
+	initial_setup()
+
+	# Parse Arguments
+	parse_args()
+
 	# Check arguments
 	argumentChecker = ArgChecker()
 
